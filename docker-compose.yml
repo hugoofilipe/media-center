@@ -1,0 +1,111 @@
+version: "3.8"
+
+services:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000 # Replace with your user's UID from Step 2.4
+      - PGID=1000 # Replace with your user's GID from Step 2.4
+      - TZ=Europe/Lisbon
+      - WEBUI_PORT=8080
+    volumes:
+      - ./config/qbittorrent:/config
+      # Mount the router share for downloads
+      # IMPORTANT: Adjust the left side (/mnt/nas/router_share) if your mount point is different
+      - /mnt/nas/router_share/downloads:/downloads # Completed downloads go here
+      - /mnt/nas/router_share/incomplete:/incomplete # Incomplete downloads (optional)
+    ports:
+      - "8080:8080" # Web UI port
+      - "6881:6881" # Incoming torrent connection port (TCP)
+      - "6881:6881/udp" # Incoming torrent connection port (UDP)
+    restart: unless-stopped
+
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    environment:
+      - PUID=1000 # Replace with your user\u0027s UID
+      - PGID=1000 # Replace with your user\u0027s GID
+      - TZ=Etc/UTC # Replace with your Timezone
+      - AUTO_UPDATE=true # Optional: Allows Jackett to update itself
+    volumes:
+      - ./config/jackett:/config
+      - /mnt/nas/router_share/downloads/blackhole:/downloads # Optional: For blackhole downloads if needed
+    ports:
+      - "9117:9117" # Web UI port
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000 # Replace with your user's UID
+      - PGID=1000 # Replace with your user's GID
+      - TZ=Europe/Lisbon
+    volumes:
+      - ./config/sonarr:/config
+      # Mount the router share for TV shows and downloads
+      # IMPORTANT: Paths on the left must match your Pi. Paths on the right are *inside* the container.
+      - /mnt/nas/router_share/tv:/tv # Your TV show library location on the NAS
+      - /mnt/nas/router_share/downloads:/downloads # Where qBittorrent saves completed files
+    ports:
+      - "8989:8989" # Web UI port
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000 # Replace with your user's UID
+      - PGID=1000 # Replace with your user's GID
+      - TZ=Europe/Lisbon
+    volumes:
+      - ./config/radarr:/config
+      # Mount the router share for Movies and downloads
+      # IMPORTANT: Paths on the left must match your Pi. Paths on the right are *inside* the container.
+      - /mnt/nas/router_share/movies:/movies # Your movie library location on the NAS
+      - /mnt/nas/router_share/downloads:/downloads # Where qBittorrent saves completed files
+    ports:
+      - "7878:7878" # Web UI port
+    restart: unless-stopped
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=1000 # Replace with your user's UID
+      - PGID=1000 # Replace with your user's GID
+      - TZ=Europe/Lisbon
+      # Optional: Enable hardware acceleration if needed (requires extra setup/permissions)
+      # - JELLYFIN_PublishedServerUrl=http://<Raspberry Pi IP Address>:8096
+    volumes:
+      - ./config/jellyfin:/config
+      # Mount the router share for media libraries
+      # IMPORTANT: Paths on the left must match your Pi. Paths on the right are *inside* the container.
+      - /mnt/nas/router_share/tv:/data/tvshows # Path inside Jellyfin for TV shows
+      - /mnt/nas/router_share/movies:/data/movies # Path inside Jellyfin for movies
+    ports:
+      - "8096:8096" # Web UI port (HTTP)
+      # - "8920:8920" # Optional: HTTPS port if you configure it
+      # - "1900:1900/udp" # Optional: DLNA service discovery
+      # - "7359:7359/udp" # Optional: Client discovery
+    # Optional: Add device mapping for hardware acceleration (e.g., /dev/dri)
+    # devices:
+    #   - /dev/dri:/dev/dri
+    restart: unless-stopped
+
+#  jellyseerr:
+#    image: fallenbagel/jellyseerr:latest
+#    container_name: jellyseerr
+#    environment:
+#      - PUID=1000 # Replace with your user's UID
+#      - PGID=1000 # Replace with your user's GID
+#      - TZ=Europe/Lisbon
+#    volumes:
+#      - ./config/jellyseerr:/app/config
+#    ports:
+#      - "5055:5055" # Web UI port
+#    restart: unless-stopped
+
+# Optional: Add other services like Prowlarr (indexer manager) or Jackett if needed.
