@@ -38,11 +38,19 @@ After setting up, you can run:
     docker-compose up -d
     ```
 ## Next Steps
+
 1. install a jellyseerr agent on device to manage your requests media.
 2. Fill in the jackett indexers with more indexers to get more content.
 3. Finish the sonarr setup to get your series.
 4. Try another solution like plex or emby to manage your media.
 5. Explore solutions to install on android xaiomi devices to work as catalog, like plex, emby, jellyfin, etc.
+
+## Troubleshooting
+
+-. If seems that the services are running very slow, try to stop the qbittorrent service.
+```bash
+docker-compose stop qbittorrent
+```
 
 ## License
 
