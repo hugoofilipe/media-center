@@ -66,6 +66,7 @@ services:
       # IMPORTANT: Paths on the left must match your Pi. Paths on the right are *inside* the container.
       - /mnt/nas/router_share/movies:/movies # Your movie library location on the NAS
       - /mnt/nas/router_share/downloads:/downloads # Where qBittorrent saves completed files
+      - /mnt/nas/router_share/incomplete:/incomplete  
     ports:
       - "7878:7878" # Web UI port
     restart: unless-stopped
